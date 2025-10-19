@@ -2,9 +2,8 @@ pipeline {
     agent any
     environment {
         IMAGE_NAME = "awanmh/simple-app"
-        REGISTRY_CREDENTIALS = 'dockerhub-credentials' // ID credentials di Jenkins
+        REGISTRY_CREDENTIALS = 'dockerhub-credentials'
     }
-
     stages {
         stage('Checkout') {
             steps {
@@ -14,14 +13,19 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'echo "Mulai build aplikasi"'
+                script {
+                    if (isUnix()) {
+                        sh 'echo "Mulai build aplikasi (Linux)"'
+                    } else {
+                        bat 'echo "Mulai build aplikasi (Windows)"'
+                    }
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build image menggunakan Docker daemon host yang tersedia
                     def img = docker.build("${IMAGE_NAME}:${env.BUILD_NUMBER}")
                 }
             }
@@ -33,7 +37,6 @@ pipeline {
                     docker.withRegistry('https://index.docker.io/v1/', "${REGISTRY_CREDENTIALS}") {
                         def imageTag = "${IMAGE_NAME}:${env.BUILD_NUMBER}"
                         docker.image(imageTag).push()
-                        // optional: push latest tag
                         docker.image(imageTag).push('latest')
                     }
                 }
