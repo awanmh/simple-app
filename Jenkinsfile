@@ -1,9 +1,11 @@
 pipeline {
     agent any
+
     environment {
         IMAGE_NAME = "awanmh/simple-app"
         REGISTRY_CREDENTIALS = 'dockerhub-credentials'
     }
+
     stages {
         stage('Checkout') {
             steps {
@@ -34,7 +36,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${REGISTRY_CREDENTIALS}") {
+                    docker.withRegistry('https://index.docker.io/v1/', REGISTRY_CREDENTIALS) {
                         def imageTag = "${IMAGE_NAME}:${env.BUILD_NUMBER}"
                         docker.image(imageTag).push()
                         docker.image(imageTag).push('latest')
